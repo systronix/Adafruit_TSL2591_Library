@@ -25,7 +25,14 @@
  #include <WProgram.h>
 #endif
 #include <Adafruit_Sensor.h>
-#include <Wire.h>
+
+// If Teensy, use i2c_t3, otherwise use Wire for I2C
+#if !defined(I2C_T3_H) && (defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MKL26Z64__) || \
+                           defined(__MK64FX512__) || defined(__MK66FX1M0__)) // 3.0/3.1-3.2/LC/3.5/3.6
+  #include <i2c_t3.h>
+#else 
+  #include <Wire.h>
+#endif  
 
 #define TSL2591_VISIBLE           (2)       ///< (channel 0) - (channel 1)
 #define TSL2591_INFRARED          (1)       ///< channel 1

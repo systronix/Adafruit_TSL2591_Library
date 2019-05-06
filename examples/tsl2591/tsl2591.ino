@@ -2,8 +2,6 @@
 /* Dynamic Range: 600M:1 */
 /* Maximum Lux: 88K */
 
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
 #include "Adafruit_TSL2591.h"
 
 // Example for demonstrating the TSL2591 library - public domain!
@@ -45,9 +43,9 @@ void displaySensorDetails(void)
 void configureSensor(void)
 {
   // You can change the gain on the fly, to adapt to brighter/dimmer light situations
-  //tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
-  tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
-  //tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
+  tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
+  // tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
+  // tsl.setGain(TSL2591_GAIN_HIGH);   // 428x gain
   
   // Changing the integration time gives you a longer time over which to sense light
   // longer timelines are slower, but are good in very low light situtations!
@@ -92,7 +90,10 @@ void configureSensor(void)
 /**************************************************************************/
 void setup(void) 
 {
-  Serial.begin(9600);
+  Serial.begin(115200);     // use max baud rate
+  // Teensy3 doesn't reset with Serial Monitor as do Teensy2/++2, or wait for Serial Monitor window
+  // Wait here for 10 seconds to see if we will use Serial Monitor, so output is not lost
+  while((!Serial) && (millis()<10000));    // wait until serial monitor is open or timeout
   
   Serial.println(F("Starting Adafruit TSL2591 Test!"));
   
@@ -146,13 +147,16 @@ void advancedRead(void)
   // That way you can do whatever math and comparisons you want!
   uint32_t lum = tsl.getFullLuminosity();
   uint16_t ir, full;
+  float lux;
   ir = lum >> 16;
   full = lum & 0xFFFF;
+  lux = tsl.calculateLux(full, ir);
   Serial.print(F("[ ")); Serial.print(millis()); Serial.print(F(" ms ] "));
   Serial.print(F("IR: ")); Serial.print(ir);  Serial.print(F("  "));
   Serial.print(F("Full: ")); Serial.print(full); Serial.print(F("  "));
   Serial.print(F("Visible: ")); Serial.print(full - ir); Serial.print(F("  "));
-  Serial.print(F("Lux: ")); Serial.println(tsl.calculateLux(full, ir), 6);
+  //Serial.print(F("Lux: ")); Serial.println(tsl.calculateLux(full, ir), 6);
+  Serial.printf("Lux: %2.4f  fc: %2.4f\n", lux, lux/10.764);    // display lux and footcandles
 }
 
 /**************************************************************************/
@@ -196,5 +200,5 @@ void loop(void)
   advancedRead();
   // unifiedSensorAPIRead();
   
-  delay(500);
+  delay(5000);
 }
